@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมบันไดงู: บทบาทหน้าที่ของเยาวชนไทย (ม.1)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            min-height: 100vh;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .dice-3d {
+            transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(234, 179, 8, 0.6)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 12px rgba(234, 179, 8, 0.9)); }
+        }
+
+        .special-tile-glow {
+            animation: pulse-glow 2.5s infinite ease-in-out;
+        }
+
+        .pawn-transition {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col justify-between min-h-screen">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-700/80 sticky top-0 z-30 px-3 md:px-6 py-2.5 shadow-lg">
+        <div class="max-w-6xl mx-auto flex justify-between items-center gap-2">
+            <div class="flex items-center gap-2.5">
+                <button id="btn-header-back" onclick="handleHeaderBack()" class="hidden px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600 transition text-xs md:text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span class="hidden sm:inline">ย้อนกลับ</span>
+                </button>
+                
+                <div class="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-amber-400 flex items-center justify-center text-lg md:text-xl text-white font-bold shadow-md shrink-0">
+                    🐍
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm sm:text-base md:text-xl text-amber-400 leading-tight">เกมบันไดงูเยาวชนทรงคุณค่า</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-400">บทบาทหน้าที่ของเยาวชนต่อสังคมและประเทศ (ม.1)</p>
+                </div>
+            </div>
+
+            <button id="btn-rules" onclick="toggleRulesModal()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs md:text-sm rounded-lg border border-slate-600 transition flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-book-open text-amber-400"></i>
+                <span class="hidden sm:inline">กติกาการเล่น</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow flex items-center justify-center p-2 sm:p-4 md:p-6">
+        
+        <!-- Screen 1: Select Player Count -->
+        <section id="screen-select-players" class="w-full max-w-xl bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur">
+            <div class="text-center mb-6 md:mb-8">
+                <span class="inline-block p-3 bg-amber-500/10 text-amber-400 rounded-2xl mb-3 border border-amber-500/20">
+                    <i class="fa-solid fa-users text-2xl md:text-3xl"></i>
+                </span>
+                <h2 class="text-xl md:text-2xl font-bold text-white mb-1.5">เลือกจำนวนผู้เล่น</h2>
+                <p class="text-slate-400 text-xs md:text-sm">ผู้ที่เดินทางไปถึง <span class="text-amber-400 font-bold">ช่อง 50</span> ก่อนจะเป็นผู้ชนะ!</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
+                <button onclick="selectPlayerCount(2)" class="p-4 md:p-5 bg-slate-700/60 hover:bg-indigo-600/30 hover:border-indigo-500 border border-slate-600 rounded-xl flex sm:flex-col items-center justify-between sm:justify-center gap-2 group transition duration-200">
+                    <div class="text-2xl md:text-3xl text-indigo-400 group-hover:scale-110 transition">👥</div>
+                    <div class="text-left sm:text-center">
+                        <span class="font-bold text-base md:text-lg text-slate-200 group-hover:text-white block">2 คน</span>
+                        <span class="text-[11px] md:text-xs text-slate-400">การดวล 1 ต่อ 1</span>
+                    </div>
+                </button>
+
+                <button onclick="selectPlayerCount(3)" class="p-4 md:p-5 bg-slate-700/60 hover:bg-emerald-600/30 hover:border-emerald-500 border border-slate-600 rounded-xl flex sm:flex-col items-center justify-between sm:justify-center gap-2 group transition duration-200">
+                    <div class="text-2xl md:text-3xl text-emerald-400 group-hover:scale-110 transition">👥👤</div>
+                    <div class="text-left sm:text-center">
+                        <span class="font-bold text-base md:text-lg text-slate-200 group-hover:text-white block">3 คน</span>
+                        <span class="text-[11px] md:text-xs text-slate-400">การแข่งขัน 3 คน</span>
+                    </div>
+                </button>
+
+                <button onclick="selectPlayerCount(4)" class="p-4 md:p-5 bg-slate-700/60 hover:bg-rose-600/30 hover:border-rose-500 border border-slate-600 rounded-xl flex sm:flex-col items-center justify-between sm:justify-center gap-2 group transition duration-200">
+                    <div class="text-2xl md:text-3xl text-rose-400 group-hover:scale-110 transition">👨‍👩‍👧‍👦</div>
+                    <div class="text-left sm:text-center">
+                        <span class="font-bold text-base md:text-lg text-slate-200 group-hover:text-white block">4 คน</span>
+                        <span class="text-[11px] md:text-xs text-slate-400">กลุ่มใหญ่สุดท้าทาย</span>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- Screen 2: Enter Player Names -->
+        <section id="screen-player-names" class="w-full max-w-xl bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur hidden">
+            <div class="flex items-center justify-between mb-6 border-b border-slate-700 pb-3">
+                <button onclick="goToScreen('screen-select-players')" class="text-slate-400 hover:text-white text-xs md:text-sm flex items-center gap-1.5 transition py-1 px-2.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg">
+                    <i class="fa-solid fa-arrow-left"></i> ย้อนกลับ
+                </button>
+                <h2 class="text-base md:text-xl font-bold text-white text-center">ลงชื่อผู้เล่น (<span id="count-label">2</span> คน)</h2>
+                <div class="w-16"></div>
+            </div>
+
+            <form id="form-player-names" onsubmit="startGame(event)" class="space-y-4">
+                <div id="player-inputs-container" class="space-y-3">
+                    <!-- Dynamic inputs -->
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="goToScreen('screen-select-players')" class="w-1/3 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl transition text-sm">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="w-2/3 py-3 bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/20 transition text-sm md:text-base flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-gamepad"></i> เริ่มเข้าสู่เกม
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Screen 3: Game Board Screen -->
+        <section id="screen-gameplay" class="w-full max-w-6xl hidden flex flex-col lg:flex-row gap-4 md:gap-6 items-start">
+            
+            <!-- Game Board Column -->
+            <div class="w-full lg:w-2/3 bg-slate-800/80 border border-slate-700 rounded-2xl p-2.5 sm:p-4 shadow-2xl backdrop-blur flex flex-col items-center">
+                
+                <!-- Legend Header -->
+                <div class="w-full flex flex-wrap justify-between items-center mb-2 text-[11px] sm:text-xs md:text-sm px-1 gap-1.5">
+                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> ช่องพิเศษ (25)</span>
+                        <span class="flex items-center gap-1 text-emerald-400">🪜 บันได</span>
+                        <span class="flex items-center gap-1 text-rose-400">🐍 งู</span>
+                    </div>
+                    <div class="text-amber-300 font-semibold text-xs sm:text-sm">
+                        🏁 เป้าหมาย: ช่อง 50
+                    </div>
+                </div>
+
+                <!-- Board Grid (10 cols x 5 rows = 50 cells) -->
+                <div id="board-grid" class="w-full grid grid-cols-10 gap-1 sm:gap-1.5 aspect-[10/6] sm:aspect-[10/5.5] bg-slate-900/90 p-1.5 sm:p-2.5 rounded-xl border border-slate-700/80 relative">
+                    <!-- Dynamic Board cells -->
+                </div>
+            </div>
+
+            <!-- Control & Status Panel Column -->
+            <div class="w-full lg:w-1/3 flex flex-col sm:flex-row lg:flex-col gap-3 sm:gap-4">
+                
+                <!-- Dice Rolling Box -->
+                <div class="w-full sm:w-1/2 lg:w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-xl backdrop-blur flex flex-col items-center text-center">
+                    <div class="text-[10px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">ตาของผู้เล่นปัจจุบัน</div>
+                    <div id="current-player-turn" class="text-base sm:text-lg md:text-xl font-bold text-amber-400 flex items-center justify-center gap-2 mb-2 md:mb-3">
+                        <!-- Current Player Info -->
+                    </div>
+
+                    <div class="my-1 sm:my-2 relative flex items-center justify-center">
+                        <div id="dice-element" class="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-slate-900 border-2 border-amber-400/80 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl md:text-4xl shadow-inner dice-3d text-amber-400">
+                            🎲
+                        </div>
+                    </div>
+                    <div id="dice-result-text" class="min-h-[24px] text-xs sm:text-sm font-semibold text-slate-300 my-1">
+                        กดปุ่มเพื่อทอยลูกเต๋า
+                    </div>
+
+                    <button id="btn-roll-dice" onclick="rollDice()" class="w-full mt-2 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                        <i class="fa-solid fa-dice text-lg"></i> ทอยลูกเต๋า
+                    </button>
+                </div>
+
+                <!-- Players Status List -->
+                <div class="w-full sm:w-1/2 lg:w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-xl backdrop-blur flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-300 mb-2.5 flex items-center gap-2 border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> ลำดับและตำแหน่งผู้เล่น
+                        </h3>
+                        <div id="players-status-list" class="space-y-2">
+                            <!-- Dynamic Player Status Items -->
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-700/80">
+                        <button onclick="confirmGoBack()" class="w-full py-2 bg-slate-700/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs sm:text-sm font-medium transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-arrow-left"></i> ย้อนกลับไปเลือกผู้เล่น
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Quiz Modal Window -->
+    <div id="modal-quiz" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-slate-800 border border-slate-600 rounded-2xl max-w-xl w-full p-4 sm:p-6 shadow-2xl text-slate-100 flex flex-col max-h-[92vh] custom-scrollbar overflow-y-auto">
+            
+            <!-- Quiz Header -->
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2.5 mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="p-2 bg-amber-500/20 text-amber-400 rounded-lg shrink-0">
+                        <i class="fa-solid fa-circle-question text-base sm:text-lg"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-sm sm:text-base md:text-lg text-amber-400 leading-snug">ช่องพิเศษ! คำถามบทบาทเยาวชน</h3>
+                        <p id="quiz-tile-type-desc" class="text-[11px] sm:text-xs text-slate-400">ตอบถูกเพื่อโอกาสรับสิทธิ์พิเศษ</p>
+                    </div>
+                </div>
+                <span class="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-[10px] sm:text-xs font-semibold rounded-full border border-indigo-500/30 shrink-0">
+                    ม.1 สังคมศึกษา
+                </span>
+            </div>
+
+            <!-- Question Body -->
+            <div class="mb-4">
+                <p id="quiz-question-text" class="text-sm sm:text-base font-medium text-slate-100 mb-3 leading-relaxed bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-slate-700/80">
+                    <!-- Question string -->
+                </p>
+
+                <!-- Options List -->
+                <div id="quiz-options-container" class="space-y-2">
+                    <!-- Option Buttons -->
+                </div>
+            </div>
+
+            <!-- Quiz Explanation & Result Area -->
+            <div id="quiz-result-box" class="hidden flex-col gap-2 p-3.5 rounded-xl mb-3 border transition duration-300">
+                <div class="flex items-center gap-2 font-bold text-sm sm:text-base" id="quiz-result-title">
+                    <!-- Correct/Incorrect Title -->
+                </div>
+                <div class="text-xs sm:text-sm text-slate-200 leading-relaxed" id="quiz-explanation-text">
+                    <!-- Detailed explanation -->
+                </div>
+            </div>
+
+            <!-- Modal Action Footer -->
+            <div class="pt-2 border-t border-slate-700/80 flex justify-end">
+                <button id="btn-confirm-quiz" onclick="closeQuizModal()" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow transition hidden text-xs sm:text-sm">
+                    ตกลง / ดำเนินการต่อ <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Confirm Back Modal Window -->
+    <div id="modal-confirm-back" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border border-slate-600 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-center text-slate-100">
+            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 border border-rose-500/30">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold mb-1 text-white">ต้องการออกจากเกม?</h3>
+            <p class="text-xs sm:text-sm text-slate-300 mb-5">ความก้าวหน้าและการเล่นปัจจุบันจะสูญหายทันที</p>
+            <div class="flex gap-2.5">
+                <button onclick="closeConfirmModal()" class="w-1/2 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl font-medium text-xs sm:text-sm transition">
+                    เล่นต่อ
+                </button>
+                <button onclick="executeGoBack()" class="w-1/2 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs sm:text-sm transition">
+                    ออกจากเกม
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Modal Window -->
+    <div id="modal-winner" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gradient-to-b from-slate-800 to-indigo-950 border-2 border-amber-400 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center text-slate-100 flex flex-col items-center relative overflow-hidden">
+            
+            <div class="text-5xl sm:text-6xl mb-2 animate-bounce">🏆</div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-amber-400 mb-1">ยินดีด้วย! คุณคือผู้ชนะ</h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-5">ผู้เดินทางถึงช่องเป้าหมาย 50 เป็นคนแรก!</p>
+
+            <div id="winner-name-display" class="text-xl sm:text-2xl font-bold bg-amber-500/20 text-amber-300 px-5 py-2.5 rounded-2xl border border-amber-400/40 mb-6 w-full">
+                <!-- Winner Name -->
+            </div>
+
+            <button onclick="resetGame()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                <i class="fa-solid fa-rotate-right"></i> เล่นใหม่อีกครั้ง
+            </button>
+        </div>
+    </div>
+
+    <!-- Rules Modal Window -->
+    <div id="modal-rules" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl text-slate-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-3">
+                <h3 class="text-base sm:text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-book"></i> กติกาการเล่นเกมบันไดงู
+                </h3>
+                <button onclick="toggleRulesModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            
+            <ul class="space-y-2 text-xs sm:text-sm leading-relaxed text-slate-300 mb-5">
+                <li class="flex items-start gap-2">
+                    <span class="text-amber-400 font-bold">1.</span>
+                    <span>ผู้เล่นสลับกันทอยลูกเต๋า และเดินหมากตามจำนวนที่ทอยได้ (ช่อง 1 ถึง 50)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-amber-400 font-bold">2.</span>
+                    <span>มี **ช่องพิเศษ 25 ช่อง** ที่มีคำถามเรื่องบทบาทหน้าที่ของเยาวชนต่อสังคมและประเทศ (ม.1)</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-amber-400 font-bold">3.</span>
+                    <span><strong class="text-emerald-400">ตอบถูก:</strong> ตกช่องบันไดจะได้ขึ้นบันได / ตกช่องงูจะไม่โดนกัด / ตกช่องโบนัสได้เดินหน้าต่อ</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-amber-400 font-bold">4.</span>
+                    <span><strong class="text-rose-400">ตอบผิด:</strong> ตกช่องงูจะตกลงมา / ตกช่องบันไดจะอดขึ้น / ตกช่องโทษจะถูกถอยหลัง</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-amber-400 font-bold">5.</span>
+                    <span>มี **คำอธิบายสรุปความรู้** ให้ศึกษาหลังตอบคำถามทุกครั้ง</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-amber-400 font-bold">6.</span>
+                    <span>ผู้ที่เดินทางเข้าถึง **ช่อง 50** ได้เป็นคนแรกคือผู้ชนะ!</span>
+                </li>
+            </ul>
+
+            <button onclick="toggleRulesModal()" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition text-xs sm:text-sm">
+                เข้าใจแล้ว
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900/70 border-t border-slate-800 py-2.5 text-center text-[11px] sm:text-xs text-slate-500 px-3">
+        สื่อการเรียนรู้สังคมศึกษา ม.1 • เรื่อง บทบาทหน้าที่ของเยาวชนต่อสังคมและประเทศ
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 25 Questions Database for M.1 Social Studies ---
+        const youthQuestions = [
+            {
+                q: "1. หน้าที่สำคัญที่สุดของเยาวชนต่อประเทศชาติตามระบอบประชาธิปไตยคือข้อใด?",
+                options: ["การไปเลือกตั้งเมื่ออายุครบ 18 ปีบริบูรณ์", "การเข้าปฏิบัติตนตามกฎหมายและเคารพสิทธิผู้อื่น", "การสมัครเข้าทำงานในหน่วยงานราชการ", "การบริจาคทรัพย์สินให้แก่ทางราชการทั้งหมด"],
+                correct: 1,
+                explanation: "การปฏิบัติตามกฎหมายและเคารพสิทธิผู้อื่นเป็นพื้นฐานสำคัญที่สุดของเยาวชนในการรักษาความสงบเรียบร้อยและสร้างสังคมประชาธิปไตยที่เข้มแข็ง"
+            },
+            {
+                q: "2. เยาวชนสามารถมีส่วนร่วมในการอนุรักษ์วัฒนธรรมไทยได้อย่างไรในชีวิตประจำวัน?",
+                options: ["ปฏิเสธการใช้วัฒนธรรมต่างชาติทั้งหมด", "พูดภาษาไทยให้ถูกต้องและปฏิบัติตามมารยาทไทย", "แต่งกายด้วยชุดไทยโบราณไปโรงเรียนทุกวัน", "สะสมวัตถุโบราณราคาแพงไว้ที่บ้าน"],
+                correct: 1,
+                explanation: "การพูดภาษาไทยให้ถูกต้องและแสดงมารยาทไทยที่งดงาม เป็นการสืบสานและอนุรักษ์วัฒนธรรมไทยที่ทำได้จริงในชีวิตประจำวัน"
+            },
+            {
+                q: "3. ข้อใดคือการแสดงออกถึง 'จิตสาธารณะ' ของเยาวชนในโรงเรียน?",
+                options: ["การตั้งใจอ่านหนังสือสอบเพื่อตนเอง", "การช่วยเก็บขยะในบริเวณโรงเรียนโดยไม่มีใครสั่ง", "การรับประทานอาหารตรงเวลา", "การซื้ออุปกรณ์การเรียนราคาแพง"],
+                correct: 1,
+                explanation: "จิตสาธารณะคือการทำประโยชน์แก่ส่วนรวมด้วยความสมัครใจ โดยไม่มุ่งหวังสิ่งตอบแทน เช่น การช่วยดูแลความสะอาดของโรงเรียน"
+            },
+            {
+                q: "4. สิทธิขั้นพื้นฐานของเด็กและเยาวชนตามอนุสัญญาว่าด้วยสิทธิเด็ก มีกี่ประการ?",
+                options: ["2 ประการ", "3 ประการ", "4 ประการ", "5 ประการ"],
+                correct: 2,
+                explanation: "สิทธิขั้นพื้นฐานของเด็กมี 4 ประการ ได้แก่ 1. สิทธิที่จะมีชีวิตรอด 2. สิทธิที่จะได้รับการพัฒนา 3. สิทธิที่จะได้รับการคุ้มครอง 4. สิทธิที่จะมีส่วนร่วม"
+            },
+            {
+                q: "5. หากเห็นเพื่อนร่วมชั้นแอบตัดไม้ทำลายสวนของโรงเรียน เยาวชนที่ดีควรปฏิบัติตามข้อใด?",
+                options: ["เข้าไปร่วมตัดด้วยเพื่อความสนุกสนาน", "ตักเตือนด้วยความสุภาพและแจ้งครูประจำชั้น", "นำเรื่องไปโพสต์ด่าในโซเชียลมีเดีย", "นิ่งเฉยเพราะไม่ใช่เรื่องของตนเอง"],
+                correct: 1,
+                explanation: "การตักเตือนอย่างเหมาะสมและแจ้งผู้ใหญ่เป็นการปกป้องสมบัติส่วนรวมตามหน้าที่เยาวชนที่ดี"
+            },
+            {
+                q: "6. บทบาทหน้าที่ของเยาวชนต่อสถาบันครอบครัวที่เหมาะสมที่สุดคือข้อใด?",
+                options: ["หาเงินเลี้ยงดูครอบครัวตั้งแต่ยังเล็ก", "กตัญญูกตเวที ช่วยเหลืองานบ้าน และตั้งใจเรียน", "ตัดสินใจเรื่องใหญ่ๆ ในบ้านแทนพ่อแม่", "เรียกร้องสิ่งของราคาแพงจากผู้ปกครอง"],
+                correct: 1,
+                explanation: "การมีความกตัญญู ช่วยงานบ้าน และตั้งใจศึกษาเล่าเรียน คือหน้าที่หลักของเยาวชนในการแบ่งเบาภาระครอบครัว"
+            },
+            {
+                q: "7. การปฏิบัติตนตามกฎจราจรของเยาวชน เช่น การข้ามถนนตรงทางข้าม แสดงถึงสิ่งใด?",
+                options: ["การเป็นคนที่มีวินัยในตนเองและเคารพกฎหมาย", "การกลัวโดนตำรวจจับกุม", "การต้องการคำชมเชยจากคนรอบข้าง", "การประหยัดเวลาในการเดินทาง"],
+                correct: 0,
+                explanation: "การเคารพกฎจราจรสะท้อนถึงวินัยในตนเอง ความรับผิดชอบต่อความปลอดภัยของตนเองและผู้อื่น"
+            },
+            {
+                q: "8. ข้อใดเป็นการใช้สื่อโซเชียลมีเดียอย่างรับผิดชอบของเยาวชน?",
+                options: ["แชร์ข่าวทันทีโดยไม่ตรวจสอบ", "ใช้วาจาประจานผู้อื่นเมื่อไม่พอใจ", "ตรวจสอบความถูกต้องของข้อมูลก่อนแชร์เสมอ", "แอบอ้างชื่อผู้อื่นในการแสดงความคิดเห็น"],
+                correct: 2,
+                explanation: "การตรวจสอบข้อมูลก่อนแชร์ช่วยป้องกันการแพร่กระจายข่าวปลอม (Fake News) และลดความเสียหายต่อสังคม"
+            },
+            {
+                q: "9. การเข้าร่วมกิจกรรมเลือกตั้งประธานนักเรียน ช่วยฝึกฝนเรื่องใด?",
+                options: ["การเอาชนะผู้อื่นด้วยความรุนแรง", "การเรียนรู้หลักการยอมรับเสียงส่วนใหญ่และเคารพเสียงส่วนน้อย", "การแสวงหาผลประโยชน์ส่วนตน", "การแบ่งแยกกลุ่มเพื่อน"],
+                correct: 1,
+                explanation: "การเลือกตั้งสภานักเรียนช่วยให้เยาวชนเข้าใจหลักการประชาธิปไตยและการเคารพสิทธิของผู้อื่น"
+            },
+            {
+                q: "10. เยาวชนมีส่วนร่วมในการแก้ปัญหาเศรษฐกิจชุมชนได้อย่างไร?",
+                options: ["ซื้อสินค้านำเข้าจากต่างประเทศราคาแพง", "อุดหนุนสินค้าและผลิตภัณฑ์ภูมิปัญญาท้องถิ่น (OTOP)", "กู้ยืมเงินมาใช้จ่ายอย่างฟุ่มเฟือย", "ปฏิเสธการใช้จ่ายเงินทุกประเภท"],
+                correct: 1,
+                explanation: "การอุดหนุนสินค้าท้องถิ่นเป็นการส่งเสริมเศรษฐกิจชุมชน ช่วยกระจายรายได้และอนุรักษ์ภูมิปัญญาท้องถิ่น"
+            },
+            {
+                q: "11. คุณธรรมข้อใดที่จำเป็นที่สุดสำหรับการทำงานกลุ่มร่วมกับผู้อื่นของเยาวชน?",
+                options: ["ความเห็นแก่ตัว", "ความอดทนและรับฟังความคิดเห็นที่แตกต่าง", "การยึดถือตนเองเป็นศูนย์กลาง", "ความสามัคคีเฉพาะกลุ่มตนเอง"],
+                correct: 1,
+                explanation: "การทำงานร่วมกับผู้อื่นต้องอาศัยการรับฟังความคิดเห็น ความอดทน เพื่อให้งานบรรลุเป้าหมายส่วนรวม"
+            },
+            {
+                q: "12. ข้อใดเป็นหน้าที่ของเยาวชนในการอนุรักษ์ทรัพยากรธรรมชาติ?",
+                options: ["ใช้น้ำและไฟฟ้าอย่างประหยัด คุ้มค่า", "เผาขยะในบริเวณบ้านทุกวัน", "ปล่อยน้ำเสียลงสู่แม่น้ำลำคลอง", "จับสัตว์ป่ามาเลี้ยงในกรง"],
+                correct: 0,
+                explanation: "การประหยัดพลังงานเป็นวิธีง่ายๆ ที่เยาวชนทุกคนทำได้เพื่อช่วยลดการใช้ทรัพยากรธรรมชาติ"
+            },
+            {
+                q: "13. การหลีกเลี่ยงและปฏิเสธสิ่งเสพติดของเยาวชน ส่งผลดีอย่างไร?",
+                options: ["ปกป้องตนเองให้มีสุขภาวะดี และลดปัญหาสังคม", "ทำให้ตนเองไม่มีเพื่อนฝูง", "เป็นการเสียโอกาสในการทดลองสิ่งใหม่", "ทำให้เป็นคนล้าหลัง"],
+                correct: 0,
+                explanation: "การหลีกเลี่ยงสารเสพติดช่วยให้เยาวชนเติบโตอย่างมีคุณภาพ และลดปัญหาภัยสังคม"
+            },
+            {
+                q: "14. เมื่อเยาวชนพบเห็นขยะตกอยู่บนพื้นในชุมชน ควรทำอย่างไร?",
+                options: ["เดินเลี่ยงไปทางอื่น", "เก็บขยะไปทิ้งลงถังขยะให้เรียบร้อย", "ต่อว่าคนที่ทิ้งขยะด้วยคำรุนแรง", "ถ่ายรูปโพสต์ลงเน็ตแต่ไม่เก็บ"],
+                correct: 1,
+                explanation: "การลงมือช่วยเก็บขยะเป็นการแสดงจิตสาธารณะโดยทันที ช่วยให้ชุมชนสะอาดน่าอยู่"
+            },
+            {
+                q: "15. ค่านิยมอันดีงามของไทยข้อใดที่เยาวชนควรปฏิบัติต่อผู้สูงอายุ?",
+                options: ["ความสัมมาคารวะและการอ่อนน้อมถ่อมตน", "การละเลยไม่ใส่ใจ", "การโต้เถียงด้วยความรุนแรง", "การหลีกเลี่ยงไม่คุยด้วย"],
+                correct: 0,
+                explanation: "ความสัมมาคารวะและความอ่อนน้อมต่อผู้สูงอายุเป็นเอกลักษณ์วัฒนธรรมไทยที่สร้างความผูกพันในสังคม"
+            },
+            {
+                q: "16. เยาวชนสามารถส่งเสริมสันติภาพในสังคมได้ด้วยวิธีใด?",
+                options: ["การใช้ความรุนแรงตัดสินปัญหา", "การแก้ปัญหาด้วยการเจรจาและสันติวิธี", "การยุยงให้เกิดความแตกแยก", "การตั้งกลุ่มนักเลง"],
+                correct: 1,
+                explanation: "สันติวิธีและการเจรจาอย่างมีเหตุผลเป็นทางออกที่ดีที่สุดในการแก้ไขความขัดแย้ง"
+            },
+            {
+                q: "17. การประหยัดอดออมเงินของเยาวชน สอดคล้องกับหลักปรัชญาใด?",
+                options: ["ปรัชญาเศรษฐกิจพอเพียง", "แนวคิดทุนนิยมเสรี", "แนวคิดบริโภคนิยม", "แนวคิดพาณิชย์นิยม"],
+                correct: 0,
+                explanation: "การออมเงินและการใช้จ่ายอย่างสมเหตุสมผลสอดคล้องกับหลักปรัชญาเศรษฐกิจพอเพียง"
+            },
+            {
+                q: "18. หน้าที่ทางกฎหมายของเยาวชนเมื่ออายุครบตามกำหนดคือข้อใด?",
+                options: ["ทำบัตรประจำตัวประชาชนเมื่ออายุครบ 7 ปีบริบูรณ์", "ต้องเสียภาษีเงินได้ทุกคนตั้งแต่เกิด", "ต้องรับราชการทหารตั้งแต่อายุ 10 ปี", "ต้องเข้าเรียนระดับอุดมศึกษาทุกคน"],
+                correct: 0,
+                explanation: "กฎหมายกำหนดให้ผู้มีสัญชาติไทยที่มีอายุตั้งแต่ 7 ปีบริบูรณ์ แต่ไม่เกิน 70 ปี ต้องมีบัตรประจำตัวประชาชน"
+            },
+            {
+                q: "19. หากเยาวชนต้องการเสนอความคิดเห็นในการพัฒนาชุมชน ควรทำผ่านช่องทางใด?",
+                options: ["การประชาคมหมู่บ้านหรือกิจกรรมส่วนรวมของชุมชน", "การประท้วงด้วยความรุนแรง", "การด่าทอผู้นำชุมชนในสื่อสังคมออนไลน์", "การเขียนป้ายประจานตามกำแพง"],
+                correct: 0,
+                explanation: "การเข้าร่วมเวทีประชาคมชุมชนเป็นช่องทางตามระบบประชาธิปไตยที่เปิดโอกาสให้แสดงความคิดเห็นอย่างสร้างสรรค์"
+            },
+            {
+                q: "20. คุณธรรม 'ความซื่อสัตย์สุจริต' ของเยาวชนในการเรียนเห็นได้ชัดจากข้อใด?",
+                options: ["การไม่ทุจริตในการสอบและการไม่ลอกการบ้านเพื่อน", "การสอบได้คะแนนลำดับที่ 1 เสมอ", "การทำรายงานเล่มใหญ่ที่สุด", "การติวหนังสือให้เพื่อนโดยคิดเงิน"],
+                correct: 0,
+                explanation: "ความซื่อสัตย์สุจริตในการเรียนคือการไม่ทุจริตสอบ ไม่ลอกงานผู้อื่น ซึ่งเป็นพื้นฐานคนดีของสังคม"
+            },
+            {
+                q: "21. การต่อต้านการทุจริตคอร์รัปชัน เยาวชนสามารถเริ่มได้จากสิ่งใด?",
+                options: ["การไม่แซงคิว และไม่ใช้อภิสิทธิ์ส่วนตัว", "การรอให้ตนเองเป็นผู้ใหญ่ก่อนค่อยทำ", "การรับเงินเพื่อช่วยเลือกตั้งสภานักเรียน", "การเพิกเฉยเมื่อเห็นคนโกง"],
+                correct: 0,
+                explanation: "การไม่แซงคิวและการเคารพลำดับก่อนหลัง เป็นการสร้างวัฒนธรรมความซื่อสัตย์และเท่าเทียม"
+            },
+            {
+                q: "22. บทบาทของเยาวชนในการรักษาสุขภาพตนเองส่งผลดีต่อประเทศอย่างไร?",
+                options: ["ช่วยลดภาระและงบประมาณการดูแลรักษาพยาบาลของประเทศ", "ทำให้ประเทศมีประชากรจำนวนมากขึ้น", "ทำให้โรงพยาบาลขาดรายได้", "ไม่มีผลดีต่อประเทศชาติ"],
+                correct: 0,
+                explanation: "เยาวชนที่มีสุขภาพแข็งแรงจะเติบโตเป็นกำลังสำคัญของชาติ และช่วยลดงบประมาณค่ารักษาพยาบาล"
+            },
+            {
+                q: "23. การสืบค้นข้อมูลจากแหล่งข้อมูลที่น่าเชื่อถือมีประโยชน์อย่างไร?",
+                options: ["ทำให้ตกเป็นเหยื่อของการหลอกลวงได้ง่าย", "ช่วยให้เกิดสติ ปัญญา และรู้เท่าทันสถานการณ์อย่างถูกต้อง", "ทำให้เสียเวลามากกว่าปกติ", "ไม่มีประโยชน์ต่อการดำเนินชีวิต"],
+                correct: 1,
+                explanation: "การรับรู้ข่าวสารจากแหล่งที่น่าเชื่อถือช่วยให้มีวิจารณญาณ ไม่ถูกหลอกลวง และตัดสินใจแก้ปัญหาได้ถูกต้อง"
+            },
+            {
+                q: "24. การอาสาสมัครช่วยงานบำเพ็ญประโยชน์ในวันสำคัญทางศาสนา แสดงถึงบทบาทใด?",
+                options: ["การทำตามเพื่อนเพื่อความสนุก", "การทำนุบำรุงศาสนาและสืบสานประเพณีอันดีงาม", "การแสดงออกเพื่อเรียกร้องรางวัล", "การหลีกเลี่ยงการทำบ้าน"],
+                correct: 1,
+                explanation: "การบำเพ็ญประโยชน์ในศาสนสถาน เป็นการสืบทอดศาสนธรรม ทำนุบำรุงศาสนา และสร้างจิตใจที่อ่อนโยน"
+            },
+            {
+                q: "25. สรุปแล้ว 'เยาวชนทรงคุณค่า' หมายถึงเยาวชนที่มีลักษณะตามข้อใด?",
+                options: ["มีความรู้สูง แต่ไม่สนใจช่วยเหลือสังคม", "เป็นคนดี มีคุณธรรม มีความรู้ และทำประโยชน์แก่สังคมและประเทศชาติ", "มีความร่ำรวยและมีชื่อเสียงในสังคม", "เอาตัวรอดได้เก่งโดยไม่คำนึงถึงวิธีการ"],
+                correct: 1,
+                explanation: "เยาวชนทรงคุณค่าคือผู้ที่เพียบพร้อมด้วยความรู้และคุณธรรม ปฏิบัติตนเป็นประโยชน์ต่อตนเองและส่วนรวม"
+            }
+        ];
+
+        // --- Player Avatars Config ---
+        const playerProfiles = [
+            { id: 1, defaultName: 'ผู้เล่น 1 (สีแดง)', bg: 'bg-rose-500', text: 'text-rose-400', border: 'border-rose-400', badge: '🔴', colorHex: '#f43f5e' },
+            { id: 2, defaultName: 'ผู้เล่น 2 (สีน้ำเงิน)', bg: 'bg-indigo-500', text: 'text-indigo-400', border: 'border-indigo-400', badge: '🔵', colorHex: '#6366f1' },
+            { id: 3, defaultName: 'ผู้เล่น 3 (สีเขียว)', bg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-400', badge: '🟢', colorHex: '#10b981' },
+            { id: 4, defaultName: 'ผู้เล่น 4 (สีเหลือง)', bg: 'bg-amber-500', text: 'text-amber-400', border: 'border-amber-400', badge: '🟡', colorHex: '#f59e0b' }
+        ];
+
+        // --- 25 Special Tiles Config on 50-Cell Board ---
+        const specialTilesMap = {
+            // Ladders (Climb if quiz answered correctly)
+            4:  { type: 'ladder', target: 14, label: '🪜 ขึ้น 14' },
+            12: { type: 'ladder', target: 26, label: '🪜 ขึ้น 26' },
+            22: { type: 'ladder', target: 37, label: '🪜 ขึ้น 37' },
+            31: { type: 'ladder', target: 46, label: '🪜 ขึ้น 46' },
+            38: { type: 'ladder', target: 49, label: '🪜 ขึ้น 49' },
+
+            // Snakes (Slide down if quiz answered incorrectly)
+            19: { type: 'snake', target: 7,  label: '🐍 ลง 7' },
+            29: { type: 'snake', target: 14, label: '🐍 ลง 14' },
+            35: { type: 'snake', target: 20, label: '🐍 ลง 20' },
+            44: { type: 'snake', target: 24, label: '🐍 ลง 24' },
+            48: { type: 'snake', target: 32, label: '🐍 ลง 32' },
+
+            // Bonus / Penalty Quiz Tiles
+            3:  { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            6:  { type: 'bonus', step: 3, label: '⭐ โบนัส +3' },
+            8:  { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            10: { type: 'bonus', step: 3, label: '⭐ โบนัส +3' },
+            15: { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            17: { type: 'bonus', step: 3, label: '⭐ โบนัส +3' },
+            21: { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            24: { type: 'bonus', step: 3, label: '⭐ โบนัส +3' },
+            27: { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            30: { type: 'bonus', step: 3, label: '⭐ โบนัส +3' },
+            33: { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            36: { type: 'bonus', step: 3, label: '⭐ โบนัส +3' },
+            40: { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            42: { type: 'bonus', step: 2, label: '⭐ โบนัส +2' },
+            45: { type: 'bonus', step: 2, label: '⭐ โบนัส +2' }
+        };
+
+        // --- State Variables ---
+        let selectedCount = 2;
+        let players = [];
+        let currentPlayerIdx = 0;
+        let isRolling = false;
+        let activeQuizTileData = null;
+        let usedQuestionIndices = [];
+
+        // --- Screen Navigation & Back Button Handling ---
+        function goToScreen(screenId) {
+            document.getElementById('screen-select-players').classList.add('hidden');
+            document.getElementById('screen-player-names').classList.add('hidden');
+            document.getElementById('screen-gameplay').classList.add('hidden');
+
+            document.getElementById(screenId).classList.remove('hidden');
+
+            const headerBackBtn = document.getElementById('btn-header-back');
+            if (screenId === 'screen-gameplay' || screenId === 'screen-player-names') {
+                headerBackBtn.classList.remove('hidden');
+            } else {
+                headerBackBtn.classList.add('hidden');
+            }
+        }
+
+        function handleHeaderBack() {
+            const gameplayScreen = document.getElementById('screen-gameplay');
+            if (!gameplayScreen.classList.contains('hidden')) {
+                document.getElementById('modal-confirm-back').classList.remove('hidden');
+            } else {
+                goToScreen('screen-select-players');
+            }
+        }
+
+        function confirmGoBack() {
+            document.getElementById('modal-confirm-back').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('modal-confirm-back').classList.add('hidden');
+        }
+
+        function executeGoBack() {
+            closeConfirmModal();
+            goToScreen('screen-select-players');
+        }
+
+        function toggleRulesModal() {
+            const modal = document.getElementById('modal-rules');
+            modal.classList.toggle('hidden');
+        }
+
+        // --- Game Setup ---
+        function selectPlayerCount(count) {
+            selectedCount = count;
+            document.getElementById('count-label').innerText = count;
+
+            const container = document.getElementById('player-inputs-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < count; i++) {
+                const profile = playerProfiles[i];
+                const inputHtml = `
+                    <div class="flex items-center gap-3 bg-slate-700/50 p-2.5 rounded-xl border border-slate-600">
+                        <span class="w-8 h-8 rounded-lg ${profile.bg} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow">
+                            P${i + 1}
+                        </span>
+                        <input type="text" id="input-player-${i}" value="${profile.defaultName}" required maxlength="15"
+                            class="w-full bg-slate-900 border border-slate-600 focus:border-amber-400 rounded-lg px-3 py-2 text-white text-sm outline-none transition" />
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', inputHtml);
+            }
+
+            goToScreen('screen-player-names');
+        }
+
+        function startGame(event) {
+            event.preventDefault();
+
+            players = [];
+            for (let i = 0; i < selectedCount; i++) {
+                const nameInput = document.getElementById(`input-player-${i}`);
+                const name = nameInput ? nameInput.value.trim() : `ผู้เล่น ${i + 1}`;
+                players.push({
+                    id: i + 1,
+                    name: name || `ผู้เล่น ${i + 1}`,
+                    position: 1,
+                    profile: playerProfiles[i]
+                });
+            }
+
+            currentPlayerIdx = 0;
+            usedQuestionIndices = [];
+
+            renderBoardGrid();
+            updateBoardPawns();
+            updateUIStatus();
+            goToScreen('screen-gameplay');
+        }
+
+        // --- Render Board Grid (50 Cells, Serpentine Serpentine Order) ---
+        function renderBoardGrid() {
+            const gridContainer = document.getElementById('board-grid');
+            gridContainer.innerHTML = '';
+
+            // 5 Rows x 10 Cols = 50 Cells
+            // Row 5 (Top): 41..50 (Left to Right)
+            // Row 4: 40..31 (Right to Left)
+            // Row 3: 21..30 (Left to Right)
+            // Row 2: 20..11 (Right to Left)
+            // Row 1 (Bottom): 1..10 (Left to Right)
+            for (let row = 5; row >= 1; row--) {
+                const isEvenRow = (row % 2 === 0);
+                for (let col = 1; col <= 10; col++) {
+                    let cellNum;
+                    if (isEvenRow) {
+                        cellNum = row * 10 - (col - 1);
+                    } else {
+                        cellNum = (row - 1) * 10 + col;
+                    }
+
+                    const isSpecial = specialTilesMap[cellNum];
+                    let specialBadgeHtml = '';
+
+                    if (isSpecial) {
+                        if (isSpecial.type === 'ladder') {
+                            specialBadgeHtml = `<span class="text-[9px] sm:text-[10px] font-bold text-emerald-300 bg-emerald-950/80 px-1 py-0.5 rounded border border-emerald-500/40">${isSpecial.label}</span>`;
+                        } else if (isSpecial.type === 'snake') {
+                            specialBadgeHtml = `<span class="text-[9px] sm:text-[10px] font-bold text-rose-300 bg-rose-950/80 px-1 py-0.5 rounded border border-rose-500/40">${isSpecial.label}</span>`;
+                        } else {
+                            specialBadgeHtml = `<span class="text-[9px] sm:text-[10px] font-bold text-amber-300 bg-amber-950/80 px-1 py-0.5 rounded border border-amber-500/40">${isSpecial.label}</span>`;
+                        }
+                    }
+
+                    const isFinish = (cellNum === 50);
+
+                    const cellHtml = `
+                        <div id="cell-${cellNum}" class="relative bg-slate-800/80 border border-slate-700/60 rounded-lg p-0.5 sm:p-1 flex flex-col justify-between overflow-hidden ${isSpecial ? 'ring-1 ring-amber-400/50 bg-amber-950/10' : ''} ${isFinish ? 'cell-finish' : ''}">
+                            <div class="flex justify-between items-center w-full">
+                                <span class="text-[10px] sm:text-xs font-bold ${isFinish ? 'text-white text-xs sm:text-sm' : 'text-slate-400'}">${cellNum}</span>
+                                ${isFinish ? '<span class="text-xs sm:text-sm">🏆</span>' : ''}
+                            </div>
+                            <div class="flex justify-center my-0.5">${specialBadgeHtml}</div>
+                            <div id="pawn-container-${cellNum}" class="flex flex-wrap gap-0.5 items-center justify-center min-h-[16px] sm:min-h-[20px]">
+                                <!-- Pawns rendered here -->
+                            </div>
+                        </div>
+                    `;
+                    gridContainer.insertAdjacentHTML('beforeend', cellHtml);
+                }
+            }
+        }
+
+        // --- Render Pawns on Board ---
+        function updateBoardPawns() {
+            for (let i = 1; i <= 50; i++) {
+                const container = document.getElementById(`pawn-container-${i}`);
+                if (container) container.innerHTML = '';
+            }
+
+            players.forEach((p) => {
+                const container = document.getElementById(`pawn-container-${p.position}`);
+                if (container) {
+                    const pawnHtml = `
+                        <div title="${p.name}" class="w-4 h-4 sm:w-5 sm:h-5 sm:text-xs rounded-full ${p.profile.bg} text-white font-extrabold text-[9px] flex items-center justify-center shadow-md border border-white/80 pawn-transition">
+                            P${p.id}
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', pawnHtml);
+                }
+            });
+        }
+
+        // --- Update Gameplay UI ---
+        function updateUIStatus() {
+            const cp = players[currentPlayerIdx];
+            const turnBox = document.getElementById('current-player-turn');
+            turnBox.innerHTML = `
+                <span class="w-3 h-3 rounded-full ${cp.profile.bg} inline-block shadow"></span>
+                <span>${cp.name}</span>
+            `;
+
+            const statusList = document.getElementById('players-status-list');
+            statusList.innerHTML = '';
+
+            players.forEach((p, idx) => {
+                const isCurrent = (idx === currentPlayerIdx);
+                const itemHtml = `
+                    <div class="flex items-center justify-between p-2 rounded-xl border ${isCurrent ? 'bg-indigo-900/40 border-amber-400/80 ring-1 ring-amber-400/30' : 'bg-slate-900/40 border-slate-700/60'} transition">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg ${p.profile.bg} text-white text-xs font-bold flex items-center justify-center">
+                                P${p.id}
+                            </span>
+                            <span class="text-xs sm:text-sm font-semibold text-slate-200 ${isCurrent ? 'text-amber-300' : ''}">
+                                ${p.name}
+                            </span>
+                        </div>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-600 text-amber-400">
+                            ช่อง ${p.position}
+                        </span>
+                    </div>
+                `;
+                statusList.insertAdjacentHTML('beforeend', itemHtml);
+            });
+        }
+
+        // --- Dice Roll & Step-by-Step Movement ---
+        function rollDice() {
+            if (isRolling) return;
+            isRolling = true;
+
+            const btnRoll = document.getElementById('btn-roll-dice');
+            const diceEl = document.getElementById('dice-element');
+            const resultText = document.getElementById('dice-result-text');
+
+            btnRoll.disabled = true;
+            btnRoll.classList.add('opacity-50', 'cursor-not-allowed');
+
+            let rollCount = 0;
+            const diceValues = ['🎲', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+
+            const interval = setInterval(() => {
+                const tempRoll = Math.floor(Math.random() * 6) + 1;
+                diceEl.innerText = diceValues[tempRoll];
+                diceEl.style.transform = `rotate(${Math.random() * 360}deg)`;
+                rollCount++;
+
+                if (rollCount > 10) {
+                    clearInterval(interval);
+                    const finalRoll = Math.floor(Math.random() * 6) + 1;
+                    diceEl.innerText = diceValues[finalRoll];
+                    diceEl.style.transform = 'rotate(0deg)';
+
+                    resultText.innerText = `ทอยได้ ${finalRoll} แต้ม!`;
+                    movePlayerStepByStep(finalRoll);
+                }
+            }, 60);
+        }
+
+        function movePlayerStepByStep(steps) {
+            const player = players[currentPlayerIdx];
+            let remaining = steps;
+
+            const moveInterval = setInterval(() => {
+                if (remaining > 0 && player.position < 50) {
+                    player.position++;
+                    updateBoardPawns();
+                    updateUIStatus();
+                    remaining--;
+                } else {
+                    clearInterval(moveInterval);
+                    checkLandingCell();
+                }
+            }, 250);
+        }
+
+        // --- Check Special Tiles & Win Condition ---
+        function checkLandingCell() {
+            const player = players[currentPlayerIdx];
+
+            // Win condition check
+            if (player.position >= 50) {
+                player.position = 50;
+                updateBoardPawns();
+                updateUIStatus();
+                showWinnerModal(player.name);
+                return;
+            }
+
+            const special = specialTilesMap[player.position];
+            if (special) {
+                activeQuizTileData = special;
+                triggerQuizModal(special);
+            } else {
+                nextTurn();
+            }
+        }
+
+        // --- Quiz System ---
+        function triggerQuizModal(specialData) {
+            const desc = document.getElementById('quiz-tile-type-desc');
+            if (specialData.type === 'ladder') {
+                desc.innerText = `ตอบถูกจะได้ขึ้นบันไดไปช่อง ${specialData.target}! (หากตอบผิดจะอยู่ช่องเดิม)`;
+            } else if (specialData.type === 'snake') {
+                desc.innerText = `ตอบถูกจะรอดพ้นจากงู! (หากตอบผิดจะสไลด์ลงไปช่อง ${specialData.target})`;
+            } else {
+                desc.innerText = `ตอบถูกจะได้เดินหน้าโบนัส ${specialData.step} ช่อง! (ตอบผิดถอยหลัง 1 ช่อง)`;
+            }
+
+            // Pick unrepeated random question
+            if (usedQuestionIndices.length >= youthQuestions.length) {
+                usedQuestionIndices = [];
+            }
+            let qIdx;
+            do {
+                qIdx = Math.floor(Math.random() * youthQuestions.length);
+            } while (usedQuestionIndices.includes(qIdx));
+
+            usedQuestionIndices.push(qIdx);
+            const qData = youthQuestions[qIdx];
+            activeQuizTileData.qData = qData;
+
+            document.getElementById('quiz-question-text').innerText = qData.q;
+
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.innerHTML = '';
+
+            qData.options.forEach((optText, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-3 rounded-xl bg-slate-700/60 hover:bg-indigo-600/30 hover:border-indigo-500 border border-slate-600 text-xs sm:text-sm text-slate-100 transition duration-150 flex items-center gap-2.5';
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-500 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">
+                        ${String.fromCharCode(65 + i)}
+                    </span>
+                    <span>${optText}</span>
+                `;
+                btn.onclick = () => evaluateQuizAnswer(i);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-result-box').classList.add('hidden');
+            document.getElementById('btn-confirm-quiz').classList.add('hidden');
+            document.getElementById('modal-quiz').classList.remove('hidden');
+        }
+
+        function evaluateQuizAnswer(selectedIndex) {
+            const qData = activeQuizTileData.qData;
+            const isCorrect = (selectedIndex === qData.correct);
+            const resultBox = document.getElementById('quiz-result-box');
+            const resultTitle = document.getElementById('quiz-result-title');
+            const explanation = document.getElementById('quiz-explanation-text');
+            const player = players[currentPlayerIdx];
+
+            // Disable option buttons after picking
+            const optButtons = document.querySelectorAll('#quiz-options-container button');
+            optButtons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.add('cursor-not-allowed', 'opacity-70');
+                if (idx === qData.correct) {
+                    btn.classList.remove('bg-slate-700/60', 'opacity-70');
+                    btn.classList.add('bg-emerald-900/60', 'border-emerald-400', 'text-emerald-200');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.classList.remove('bg-slate-700/60');
+                    btn.classList.add('bg-rose-900/60', 'border-rose-500', 'text-rose-200');
+                }
+            });
+
+            resultBox.classList.remove('hidden', 'bg-emerald-950/50', 'border-emerald-500/50', 'bg-rose-950/50', 'border-rose-500/50');
+
+            if (isCorrect) {
+                resultBox.classList.add('bg-emerald-950/50', 'border-emerald-500/50');
+                resultTitle.className = 'flex items-center gap-2 font-bold text-sm sm:text-base text-emerald-400';
+
+                if (activeQuizTileData.type === 'ladder') {
+                    resultTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> ตอบถูกต้อง! ปีนบันไดขึ้นไปยังช่อง ${activeQuizTileData.target}`;
+                    player.position = activeQuizTileData.target;
+                } else if (activeQuizTileData.type === 'snake') {
+                    resultTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> ตอบถูกต้อง! รอดพ้นจากการโดนงูกัด`;
+                } else {
+                    resultTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> ตอบถูกต้อง! ได้รับโบนัสเดินหน้า ${activeQuizTileData.step} ช่อง`;
+                    player.position = Math.min(50, player.position + activeQuizTileData.step);
+                }
+            } else {
+                resultBox.classList.add('bg-rose-950/50', 'border-rose-500/50');
+                resultTitle.className = 'flex items-center gap-2 font-bold text-sm sm:text-base text-rose-400';
+
+                if (activeQuizTileData.type === 'ladder') {
+                    resultTitle.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ตอบไม่ถูกต้อง! อดขึ้นบันได (ประจำที่ช่องเดิม)`;
+                } else if (activeQuizTileData.type === 'snake') {
+                    resultTitle.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ตอบไม่ถูกต้อง! โดนงูกัดสไลด์ลงไปยังช่อง ${activeQuizTileData.target}`;
+                    player.position = activeQuizTileData.target;
+                } else {
+                    resultTitle.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ตอบไม่ถูกต้อง! โดนลงโทษถอยหลัง 1 ช่อง`;
+                    player.position = Math.max(1, player.position - 1);
+                }
+            }
+
+            explanation.innerText = `💡 สรุปความรู้: ${qData.explanation}`;
+
+            updateBoardPawns();
+            updateUIStatus();
+
+            document.getElementById('btn-confirm-quiz').classList.remove('hidden');
+        }
+
+        function closeQuizModal() {
+            document.getElementById('modal-quiz').classList.add('hidden');
+
+            const player = players[currentPlayerIdx];
+            if (player.position >= 50) {
+                player.position = 50;
+                updateBoardPawns();
+                updateUIStatus();
+                showWinnerModal(player.name);
+            } else {
+                nextTurn();
+            }
+        }
+
+        function nextTurn() {
+            currentPlayerIdx = (currentPlayerIdx + 1) % players.length;
+            updateUIStatus();
+
+            isRolling = false;
+            const btnRoll = document.getElementById('btn-roll-dice');
+            btnRoll.disabled = false;
+            btnRoll.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('dice-result-text').innerText = `ตาของ ${players[currentPlayerIdx].name}`;
+        }
+
+        // --- Winner Screen ---
+        function showWinnerModal(winnerName) {
+            document.getElementById('winner-name-display').innerText = winnerName;
+            document.getElementById('modal-winner').classList.remove('hidden');
+        }
+
+        function resetGame() {
+            document.getElementById('modal-winner').classList.add('hidden');
+            goToScreen('screen-select-players');
+        }
+    </script>
+</body>
+</html>
